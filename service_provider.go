@@ -13,10 +13,10 @@ import (
 	"time"
 )
 
-type ConsoleProvider func(application contracts.Application) contracts.Console
+type Provider func(application contracts.Application) contracts.Console
 
 type ServiceProvider struct {
-	ConsoleProvider ConsoleProvider
+	ConsoleProvider Provider
 
 	stopChan         chan bool
 	serverIdChan     chan bool

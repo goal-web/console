@@ -9,16 +9,19 @@ import (
 	"github.com/modood/table"
 )
 
-type CommandProvider func(application contracts.Application) contracts.Command
-
 var CommandDontExists = errors.New("命令不存在！")
 
 const logoText = "  ▄████  ▒█████   ▄▄▄       ██▓    \n ██▒ ▀█▒▒██▒  ██▒▒████▄    ▓██▒    \n▒██░▄▄▄░▒██░  ██▒▒██  ▀█▄  ▒██░    \n░▓█  ██▓▒██   ██░░██▄▄▄▄██ ▒██░    \n░▒▓███▀▒░ ████▓▒░ ▓█   ▓██▒░██████▒\n ░▒   ▒ ░ ▒░▒░▒░  ▒▒   ▓▒█░░ ▒░▓  ░\n  ░   ░   ░ ▒ ▒░   ▒   ▒▒ ░░ ░ ▒  ░\n░ ░   ░ ░ ░ ░ ▒    ░   ▒     ░ ░   \n      ░     ░ ░        ░  ░    ░  ░\n                                   "
 
 type Kernel struct {
-	commands         map[string]contracts.Command
+	app              contracts.Application
+	commands         map[string]contracts.CommandProvider
 	schedule         contracts.Schedule
 	exceptionHandler contracts.ExceptionHandler
+}
+
+func (this *Kernel) RegisterCommand(name string, command contracts.CommandProvider) {
+	this.commands[name] = command
 }
 
 func (this *Kernel) GetSchedule() contracts.Schedule {
@@ -28,15 +31,13 @@ func (this *Kernel) GetSchedule() contracts.Schedule {
 func (this *Kernel) Schedule(schedule contracts.Schedule) {
 }
 
-func NewKernel(app contracts.Application, commandProviders []CommandProvider) *Kernel {
-	commands := make(map[string]contracts.Command)
-
-	for _, commandProvider := range commandProviders {
-		command := commandProvider(app)
-		commands[command.GetName()] = command
+func NewKernel(app contracts.Application, commandProviders []contracts.CommandProvider) *Kernel {
+	var commands = make(map[string]contracts.CommandProvider)
+	for _, provider := range commandProviders {
+		commands[provider(app).GetName()] = provider
 	}
-
 	return &Kernel{
+		app:              app,
 		commands:         commands,
 		schedule:         scheduling.NewSchedule(app),
 		exceptionHandler: app.Get("exceptions.handler").(contracts.ExceptionHandler),
@@ -52,10 +53,11 @@ type CommandItem struct {
 func (this Kernel) Help() {
 	cmdTable := make([]CommandItem, 0)
 	for _, command := range this.commands {
+		cmd := command(this.app)
 		cmdTable = append(cmdTable, CommandItem{
-			Command:     command.GetName(),
-			Signature:   command.GetSignature(),
-			Description: command.GetDescription(),
+			Command:     cmd.GetName(),
+			Signature:   cmd.GetSignature(),
+			Description: cmd.GetDescription(),
 		})
 	}
 	fmt.Println(logoText)
@@ -67,8 +69,9 @@ func (this *Kernel) Call(cmd string, arguments contracts.CommandArguments) inter
 		this.Help()
 		return nil
 	}
-	for signature, command := range this.commands {
-		if cmd == signature {
+	for name, provider := range this.commands {
+		if cmd == name {
+			command := provider(this.app)
 			if arguments.Exists("h") || arguments.Exists("help") {
 				fmt.Println(logoText)
 				fmt.Printf(" %s 命令：%s\n", command.GetName(), command.GetDescription())

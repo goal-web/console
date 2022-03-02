@@ -54,7 +54,7 @@ func (this *Schedule) Command(command contracts.Command, args ...string) contrac
 	input := inputs.StringArray(args)
 	err := command.InjectArguments(input.GetArguments())
 	if err != nil {
-		logs.WithError(err).Debug("command 参数错误")
+		logs.WithError(err).WithField("args", args).Debug("Schedule.Command: arguments invalid")
 		panic(err) // 因为这个阶段框架还没正式运行，所以 panic
 	}
 	event := NewCommandEvent(command.GetName(), this.mutex, func(console contracts.Console) {

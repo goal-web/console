@@ -5,6 +5,7 @@ import (
 	"github.com/goal-web/console/inputs"
 	"github.com/goal-web/contracts"
 	"github.com/goal-web/supports/logs"
+	"os/exec"
 )
 
 type Schedule struct {
@@ -25,11 +26,14 @@ func (this *Schedule) UseStore(store string) {
 }
 
 func NewSchedule(app contracts.Application) contracts.Schedule {
-	appConfig := app.Get("config").(contracts.Config).Get("app").(application.Config)
+	var (
+		appConfig = app.Get("config").(contracts.Config).Get("app").(application.Config)
+		redis, _  = app.Get("redis.factory").(contracts.RedisFactory)
+	)
 	return &Schedule{
 		timezone: appConfig.Timezone,
 		mutex: &Mutex{
-			redis: app.Get("redis.factory").(contracts.RedisFactory),
+			redis: redis,
 			store: "cache",
 		},
 		app:    app,
@@ -61,10 +65,8 @@ func (this *Schedule) Command(command contracts.Command, args ...string) contrac
 }
 
 func (this *Schedule) Exec(command string, args ...string) contracts.CommandEvent {
-	args = append([]string{command}, args...)
-	input := inputs.StringArray(args)
-	event := NewCommandEvent(command, this.mutex, func(console contracts.Console) {
-		console.Run(&input)
+	var event = NewCommandEvent(command, this.mutex, func() {
+		exec.Command(command, args...)
 	}, this.timezone)
 	this.events = append(this.events, event)
 	return event

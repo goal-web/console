@@ -98,3 +98,7 @@ func (this *Kernel) Call(cmd string, arguments contracts.CommandArguments) inter
 func (this *Kernel) Run(input contracts.ConsoleInput) interface{} {
 	return this.Call(input.GetCommand(), input.GetArguments())
 }
+
+func (this *Kernel) Exists(name string) bool {
+	return this.commands[name] != nil
+}

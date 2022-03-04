@@ -65,8 +65,20 @@ func (this *Schedule) Command(command contracts.Command, args ...string) contrac
 }
 
 func (this *Schedule) Exec(command string, args ...string) contracts.CommandEvent {
-	var event = NewCommandEvent(command, this.mutex, func() {
-		exec.Command(command, args...)
+	var event = NewCommandEvent(command, this.mutex, func(console contracts.Console) {
+		if console.Exists(command) {
+			args = append([]string{command}, args...)
+			input := inputs.StringArray(args)
+			console.Run(&input)
+		} else {
+			if err := exec.Command(command, args...).Run(); err != nil {
+				logs.WithError(err).
+					WithField("command", command).
+					WithField("args", args).
+					Debug("Schedule.Exec: failed")
+			}
+		}
+
 	}, this.timezone)
 	this.events = append(this.events, event)
 	return event

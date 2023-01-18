@@ -14,19 +14,19 @@ func StringArray(argsArray []string) StringArrayInput {
 	return StringArrayInput{argsArray}
 }
 
-func (this *StringArrayInput) GetCommand() string {
-	if len(this.ArgsArray) > 0 {
-		return this.ArgsArray[0]
+func (input *StringArrayInput) GetCommand() string {
+	if len(input.ArgsArray) > 0 {
+		return input.ArgsArray[0]
 	}
 	return ""
 }
 
-func (this *StringArrayInput) GetArguments() contracts.CommandArguments {
-	if len(this.ArgsArray) > 0 {
+func (input *StringArrayInput) GetArguments() contracts.CommandArguments {
+	if len(input.ArgsArray) > 0 {
 		args := make([]string, 0)
 		options := contracts.Fields{}
 
-		for _, arg := range this.ArgsArray[1:] {
+		for _, arg := range input.ArgsArray[1:] {
 			if strings.HasPrefix(arg, "--") {
 				if argArr := strings.Split(strings.ReplaceAll(arg, "--", ""), "="); len(argArr) > 1 {
 					options[argArr[0]] = argArr[1]

@@ -13,18 +13,18 @@ type Arguments struct {
 	options contracts.Fields
 }
 
-func (this *Arguments) GetArg(index int) string {
-	if index >= len(this.args) {
+func (args *Arguments) GetArg(index int) string {
+	if index >= len(args.args) {
 		return ""
 	}
-	return this.args[index]
+	return args.args[index]
 }
 
-func (this *Arguments) GetArgs() []string {
-	return this.args
+func (args *Arguments) GetArgs() []string {
+	return args.args
 }
-func (this *Arguments) SetOption(key string, value interface{}) {
-	this.Fields()[key] = value
+func (args *Arguments) SetOption(key string, value interface{}) {
+	args.Fields()[key] = value
 }
 
 func NewArguments(args []string, options contracts.Fields) contracts.CommandArguments {
@@ -38,15 +38,15 @@ func NewArguments(args []string, options contracts.Fields) contracts.CommandArgu
 	return arguments
 }
 
-func (this *Arguments) StringArrayOption(key string, defaultValue []string) []string {
-	if value := this.GetString(key); value != "" {
+func (args *Arguments) StringArrayOption(key string, defaultValue []string) []string {
+	if value := args.GetString(key); value != "" {
 		return strings.Split(value, ",")
 	}
 	return defaultValue
 }
 
-func (this *Arguments) Int64ArrayOption(key string, defaultValue []int64) []int64 {
-	if value := this.GetString(key); value != "" {
+func (args *Arguments) Int64ArrayOption(key string, defaultValue []int64) []int64 {
+	if value := args.GetString(key); value != "" {
 		values := make([]int64, 0)
 		for _, value = range strings.Split(value, ",") {
 			values = append(values, utils.ConvertToInt64(value, 0))
@@ -56,8 +56,8 @@ func (this *Arguments) Int64ArrayOption(key string, defaultValue []int64) []int6
 	return defaultValue
 }
 
-func (this *Arguments) IntArrayOption(key string, defaultValue []int) []int {
-	if value := this.GetString(key); value != "" {
+func (args *Arguments) IntArrayOption(key string, defaultValue []int) []int {
+	if value := args.GetString(key); value != "" {
 		values := make([]int, 0)
 		for _, value = range strings.Split(value, ",") {
 			values = append(values, utils.ConvertToInt(value, 0))
@@ -67,8 +67,8 @@ func (this *Arguments) IntArrayOption(key string, defaultValue []int) []int {
 	return defaultValue
 }
 
-func (this *Arguments) Float64ArrayOption(key string, defaultValue []float64) []float64 {
-	if value := this.GetString(key); value != "" {
+func (args *Arguments) Float64ArrayOption(key string, defaultValue []float64) []float64 {
+	if value := args.GetString(key); value != "" {
 		values := make([]float64, 0)
 		for _, value = range strings.Split(value, ",") {
 			values = append(values, utils.ConvertToFloat64(value, 0))
@@ -78,8 +78,8 @@ func (this *Arguments) Float64ArrayOption(key string, defaultValue []float64) []
 	return defaultValue
 }
 
-func (this *Arguments) FloatArrayOption(key string, defaultValue []float32) []float32 {
-	if value := this.GetString(key); value != "" {
+func (args *Arguments) FloatArrayOption(key string, defaultValue []float32) []float32 {
+	if value := args.GetString(key); value != "" {
 		values := make([]float32, 0)
 		for _, value = range strings.Split(value, ",") {
 			values = append(values, utils.ConvertToFloat(value, 0))
@@ -89,11 +89,11 @@ func (this *Arguments) FloatArrayOption(key string, defaultValue []float32) []fl
 	return defaultValue
 }
 
-func (this *Arguments) Fields() contracts.Fields {
-	return this.options
+func (args *Arguments) Fields() contracts.Fields {
+	return args.options
 }
 
-func (this *Arguments) Exists(key string) bool {
-	_, exists := this.options[key]
+func (args *Arguments) Exists(key string) bool {
+	_, exists := args.options[key]
 	return exists
 }

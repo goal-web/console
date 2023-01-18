@@ -20,15 +20,15 @@ type Kernel struct {
 	exceptionHandler contracts.ExceptionHandler
 }
 
-func (this *Kernel) RegisterCommand(name string, command contracts.CommandProvider) {
-	this.commands[name] = command
+func (kernel *Kernel) RegisterCommand(name string, command contracts.CommandProvider) {
+	kernel.commands[name] = command
 }
 
-func (this *Kernel) GetSchedule() contracts.Schedule {
-	return this.schedule
+func (kernel *Kernel) GetSchedule() contracts.Schedule {
+	return kernel.schedule
 }
 
-func (this *Kernel) Schedule(schedule contracts.Schedule) {
+func (kernel *Kernel) Schedule(schedule contracts.Schedule) {
 }
 
 func NewKernel(app contracts.Application, commandProviders []contracts.CommandProvider) *Kernel {
@@ -50,10 +50,10 @@ type CommandItem struct {
 	Description string
 }
 
-func (this Kernel) Help() {
+func (kernel *Kernel) Help() {
 	cmdTable := make([]CommandItem, 0)
-	for _, command := range this.commands {
-		cmd := command(this.app)
+	for _, command := range kernel.commands {
+		cmd := command(kernel.app)
 		cmdTable = append(cmdTable, CommandItem{
 			Command:     cmd.GetName(),
 			Signature:   cmd.GetSignature(),
@@ -64,14 +64,14 @@ func (this Kernel) Help() {
 	table.Output(cmdTable)
 }
 
-func (this *Kernel) Call(cmd string, arguments contracts.CommandArguments) interface{} {
+func (kernel *Kernel) Call(cmd string, arguments contracts.CommandArguments) interface{} {
 	if cmd == "" {
-		this.Help()
+		kernel.Help()
 		return nil
 	}
-	for name, provider := range this.commands {
+	for name, provider := range kernel.commands {
 		if cmd == name {
-			command := provider(this.app)
+			command := provider(kernel.app)
 			if arguments.Exists("h") || arguments.Exists("help") {
 				fmt.Println(logoText)
 				fmt.Printf(" %s 命令：%s\n", command.GetName(), command.GetDescription())
@@ -79,7 +79,7 @@ func (this *Kernel) Call(cmd string, arguments contracts.CommandArguments) inter
 				return nil
 			}
 			if err := command.InjectArguments(arguments); err != nil {
-				this.exceptionHandler.Handle(CommandArgumentException{
+				kernel.exceptionHandler.Handle(CommandArgumentException{
 					exceptions.WithError(err, contracts.Fields{
 						"command":   cmd,
 						"arguments": arguments,
@@ -95,10 +95,10 @@ func (this *Kernel) Call(cmd string, arguments contracts.CommandArguments) inter
 	return CommandDontExists
 }
 
-func (this *Kernel) Run(input contracts.ConsoleInput) interface{} {
-	return this.Call(input.GetCommand(), input.GetArguments())
+func (kernel *Kernel) Run(input contracts.ConsoleInput) interface{} {
+	return kernel.Call(input.GetCommand(), input.GetArguments())
 }
 
-func (this *Kernel) Exists(name string) bool {
-	return this.commands[name] != nil
+func (kernel *Kernel) Exists(name string) bool {
+	return kernel.commands[name] != nil
 }

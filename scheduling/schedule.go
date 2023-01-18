@@ -17,12 +17,12 @@ type Schedule struct {
 	events []contracts.ScheduleEvent
 }
 
-func (this *Schedule) GetEvents() []contracts.ScheduleEvent {
-	return this.events
+func (schedule *Schedule) GetEvents() []contracts.ScheduleEvent {
+	return schedule.events
 }
 
-func (this *Schedule) UseStore(store string) {
-	this.store = store
+func (schedule *Schedule) UseStore(store string) {
+	schedule.store = store
 }
 
 func NewSchedule(app contracts.Application) contracts.Schedule {
@@ -41,15 +41,15 @@ func NewSchedule(app contracts.Application) contracts.Schedule {
 	}
 }
 
-func (this *Schedule) Call(callback interface{}, args ...interface{}) contracts.CallbackEvent {
-	event := NewCallbackEvent(this.mutex, func() {
-		this.app.Call(callback, args...)
-	}, this.timezone)
-	this.events = append(this.events, event)
+func (schedule *Schedule) Call(callback interface{}, args ...interface{}) contracts.CallbackEvent {
+	event := NewCallbackEvent(schedule.mutex, func() {
+		schedule.app.Call(callback, args...)
+	}, schedule.timezone)
+	schedule.events = append(schedule.events, event)
 	return event
 }
 
-func (this *Schedule) Command(command contracts.Command, args ...string) contracts.CommandEvent {
+func (schedule *Schedule) Command(command contracts.Command, args ...string) contracts.CommandEvent {
 	args = append([]string{command.GetName()}, args...)
 	input := inputs.StringArray(args)
 	err := command.InjectArguments(input.GetArguments())
@@ -57,15 +57,15 @@ func (this *Schedule) Command(command contracts.Command, args ...string) contrac
 		logs.WithError(err).WithField("args", args).Debug("Schedule.Command: arguments invalid")
 		panic(err) // 因为这个阶段框架还没正式运行，所以 panic
 	}
-	event := NewCommandEvent(command.GetName(), this.mutex, func(console contracts.Console) {
+	event := NewCommandEvent(command.GetName(), schedule.mutex, func(console contracts.Console) {
 		command.Handle()
-	}, this.timezone)
-	this.events = append(this.events, event)
+	}, schedule.timezone)
+	schedule.events = append(schedule.events, event)
 	return event
 }
 
-func (this *Schedule) Exec(command string, args ...string) contracts.CommandEvent {
-	var event = NewCommandEvent(command, this.mutex, func(console contracts.Console) {
+func (schedule *Schedule) Exec(command string, args ...string) contracts.CommandEvent {
+	var event = NewCommandEvent(command, schedule.mutex, func(console contracts.Console) {
 		if console.Exists(command) {
 			args = append([]string{command}, args...)
 			input := inputs.StringArray(args)
@@ -79,7 +79,7 @@ func (this *Schedule) Exec(command string, args ...string) contracts.CommandEven
 			}
 		}
 
-	}, this.timezone)
-	this.events = append(this.events, event)
+	}, schedule.timezone)
+	schedule.events = append(schedule.events, event)
 	return event
 }

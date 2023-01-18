@@ -18,14 +18,14 @@ type CallbackEvent struct {
 	description string
 }
 
-func (this *CallbackEvent) Description(description string) contracts.CallbackEvent {
-	this.description = description
-	return this
+func (event *CallbackEvent) Description(description string) contracts.CallbackEvent {
+	event.description = description
+	return event
 }
 
-func (this *CallbackEvent) MutexName() string {
-	if this.mutexName == "" {
-		return fmt.Sprintf("goal.schedule-%s", utils.Md5(this.expression+this.description))
+func (event *CallbackEvent) MutexName() string {
+	if event.mutexName == "" {
+		return fmt.Sprintf("goal.schedule-%s", utils.Md5(event.expression+event.description))
 	}
-	return this.mutexName
+	return event.mutexName
 }

@@ -18,14 +18,14 @@ type CommandEvent struct {
 	command string
 }
 
-func (this *CommandEvent) Command(command string) contracts.CommandEvent {
-	this.command = command
-	return this
+func (event *CommandEvent) Command(command string) contracts.CommandEvent {
+	event.command = command
+	return event
 }
 
-func (this *CommandEvent) MutexName() string {
-	if this.mutexName == "" {
-		return fmt.Sprintf("goal.schedule-%s", utils.Md5(this.expression+this.command))
+func (event *CommandEvent) MutexName() string {
+	if event.mutexName == "" {
+		return fmt.Sprintf("goal.schedule-%s", utils.Md5(event.expression+event.command))
 	}
-	return this.mutexName
+	return event.mutexName
 }

@@ -15,7 +15,7 @@ import (
 
 type Provider func(application contracts.Application) contracts.Console
 
-type ServiceProvider struct {
+type serviceProvider struct {
 	ConsoleProvider Provider
 
 	stopChan         chan bool
@@ -25,12 +25,16 @@ type ServiceProvider struct {
 	exceptionHandler contracts.ExceptionHandler
 }
 
-func (this *ServiceProvider) Register(application contracts.Application) {
-	this.app = application
-	this.exceptionHandler = application.Get("exceptions.handler").(contracts.ExceptionHandler)
+func NewService(provider Provider) contracts.ServiceProvider {
+	return &serviceProvider{ConsoleProvider: provider}
+}
+
+func (provider *serviceProvider) Register(application contracts.Application) {
+	provider.app = application
+	provider.exceptionHandler = application.Get("exceptions.handler").(contracts.ExceptionHandler)
 
 	application.Singleton("console", func() contracts.Console {
-		console := this.ConsoleProvider(application)
+		console := provider.ConsoleProvider(application)
 		console.Schedule(console.GetSchedule())
 		return console
 	})
@@ -42,20 +46,20 @@ func (this *ServiceProvider) Register(application contracts.Application) {
 	})
 }
 
-func (this *ServiceProvider) runScheduleEvents(events []contracts.ScheduleEvent) {
+func (provider *serviceProvider) runScheduleEvents(events []contracts.ScheduleEvent) {
 	if len(events) > 0 {
 		// 并发执行所有事件
 		now := time.Now()
 		for index, event := range events {
-			lastExecTime := this.execRecords[index]
+			lastExecTime := provider.execRecords[index]
 			nextTime := carbon.Time2Carbon(cronexpr.MustParse(event.Expression()).Next(lastExecTime))
 			nowCarbon := carbon.Time2Carbon(now)
 			if nextTime.DiffInSeconds(nowCarbon) == 0 {
-				this.execRecords[index] = now
+				provider.execRecords[index] = now
 				go (func(event contracts.ScheduleEvent) {
 					defer func() {
 						if err := recover(); err != nil {
-							this.exceptionHandler.Handle(ScheduleEventException{
+							provider.exceptionHandler.Handle(ScheduleEventException{
 								Exception: exceptions.WithRecover(err, contracts.Fields{
 									"expression": event.Expression(),
 									"mutex_name": event.MutexName(),
@@ -65,22 +69,22 @@ func (this *ServiceProvider) runScheduleEvents(events []contracts.ScheduleEvent)
 							})
 						}
 					}()
-					event.Run(this.app)
+					event.Run(provider.app)
 				})(event)
 			} else if nextTime.Lt(nowCarbon) {
-				this.execRecords[index] = now
+				provider.execRecords[index] = now
 			}
 		}
 	}
 }
 
-func (this *ServiceProvider) Start() error {
-	this.execRecords = make(map[int]time.Time)
-	go this.maintainServerId()
-	this.app.Call(func(schedule contracts.Schedule) {
+func (provider *serviceProvider) Start() error {
+	provider.execRecords = make(map[int]time.Time)
+	go provider.maintainServerId()
+	provider.app.Call(func(schedule contracts.Schedule) {
 		if len(schedule.GetEvents()) > 0 {
-			this.stopChan = utils.SetInterval(1, func() {
-				this.runScheduleEvents(schedule.GetEvents())
+			provider.stopChan = utils.SetInterval(1, func() {
+				provider.runScheduleEvents(schedule.GetEvents())
 			}, func() {
 				logs.Default().Info("the goal scheduling is closed")
 			})
@@ -89,20 +93,20 @@ func (this *ServiceProvider) Start() error {
 	return nil
 }
 
-func (this *ServiceProvider) Stop() {
-	if this.stopChan != nil {
-		this.stopChan <- true
+func (provider *serviceProvider) Stop() {
+	if provider.stopChan != nil {
+		provider.stopChan <- true
 	}
-	if this.serverIdChan != nil {
-		this.serverIdChan <- true
+	if provider.serverIdChan != nil {
+		provider.serverIdChan <- true
 	}
 }
 
 // maintainServerId 维护服务实例ID
-func (this *ServiceProvider) maintainServerId() {
-	this.app.Call(func(redis contracts.RedisConnection, config contracts.Config, handler contracts.ExceptionHandler) {
+func (provider *serviceProvider) maintainServerId() {
+	provider.app.Call(func(redis contracts.RedisConnection, config contracts.Config, handler contracts.ExceptionHandler) {
 		appConfig := config.Get("app").(application.Config)
-		this.serverIdChan = utils.SetInterval(1, func() {
+		provider.serverIdChan = utils.SetInterval(1, func() {
 			// 维持当前服务心跳
 			_, _ = redis.Set("goal.server."+appConfig.ServerId, time.Now().String(), time.Second*2)
 		}, func() {

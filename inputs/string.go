@@ -10,18 +10,18 @@ type StringArrayInput struct {
 	ArgsArray []string
 }
 
-func String(argsArray ...string) contracts.ConsoleInput {
-	return &StringArrayInput{argsArray}
+func String(argsArray ...string) StringArrayInput {
+	return StringArrayInput{argsArray}
 }
 
-func (input *StringArrayInput) GetCommand() string {
+func (input StringArrayInput) GetCommand() string {
 	if len(input.ArgsArray) > 0 {
 		return input.ArgsArray[0]
 	}
 	return ""
 }
 
-func (input *StringArrayInput) GetArguments() contracts.CommandArguments {
+func (input StringArrayInput) GetArguments() contracts.CommandArguments {
 	if len(input.ArgsArray) > 0 {
 		args := make([]string, 0)
 		options := contracts.Fields{}

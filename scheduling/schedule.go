@@ -32,16 +32,13 @@ func NewSchedule(app contracts.Application) contracts.Schedule {
 	)
 	return &Schedule{
 		timezone: appConfig.Timezone,
-		mutex: &Mutex{
-			redis: redis,
-			store: "cache",
-		},
-		app:    app,
-		events: make([]contracts.ScheduleEvent, 0),
+		mutex:    &Mutex{redis: redis.Connection()},
+		app:      app,
+		events:   make([]contracts.ScheduleEvent, 0),
 	}
 }
 
-func (schedule *Schedule) Call(callback interface{}, args ...interface{}) contracts.CallbackEvent {
+func (schedule *Schedule) Call(callback any, args ...any) contracts.CallbackEvent {
 	event := NewCallbackEvent(schedule.mutex, func() {
 		schedule.app.Call(callback, args...)
 	}, schedule.timezone)
@@ -51,7 +48,7 @@ func (schedule *Schedule) Call(callback interface{}, args ...interface{}) contra
 
 func (schedule *Schedule) Command(command contracts.Command, args ...string) contracts.CommandEvent {
 	args = append([]string{command.GetName()}, args...)
-	input := inputs.StringArray(args)
+	input := inputs.String(args...)
 	err := command.InjectArguments(input.GetArguments())
 	if err != nil {
 		logs.WithError(err).WithField("args", args).Debug("Schedule.Command: arguments invalid")
@@ -68,14 +65,14 @@ func (schedule *Schedule) Exec(command string, args ...string) contracts.Command
 	var event = NewCommandEvent(command, schedule.mutex, func(console contracts.Console) {
 		if console.Exists(command) {
 			args = append([]string{command}, args...)
-			input := inputs.StringArray(args)
+			input := inputs.String(args...)
 			console.Run(&input)
 		} else {
 			if err := exec.Command(command, args...).Run(); err != nil {
 				logs.WithError(err).
 					WithField("command", command).
 					WithField("args", args).
-					Debug("Schedule.Exec: failed")
+					Error("Schedule.Exec: failed")
 			}
 		}
 

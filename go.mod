@@ -14,7 +14,9 @@ require (
 require (
 	github.com/apex/log v1.9.0 // indirect
 	github.com/goal-web/container v0.1.5 // indirect
-	github.com/pkg/errors v0.8.1 // indirect
-	github.com/qbhy/parallel v1.3.0 // indirect
+	github.com/gopherjs/gopherjs v1.17.2 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
+	github.com/qbhy/parallel v1.4.0 // indirect
 	github.com/smartystreets/goconvey v1.7.2 // indirect
+	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )

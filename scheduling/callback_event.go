@@ -6,7 +6,7 @@ import (
 	"github.com/goal-web/supports/utils"
 )
 
-func NewCallbackEvent(mutex *Mutex, callback interface{}, timezone string) contracts.CallbackEvent {
+func NewCallbackEvent(mutex *Mutex, callback any, timezone string) contracts.CallbackEvent {
 	return &CallbackEvent{
 		Event:       NewEvent(mutex, callback, timezone),
 		description: "",

@@ -10,5 +10,5 @@ type ArgsInput struct {
 }
 
 func NewOSArgsInput() contracts.ConsoleInput {
-	return &ArgsInput{StringArray(os.Args[1:])}
+	return &ArgsInput{String(os.Args[1:]...)}
 }

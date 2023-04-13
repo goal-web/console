@@ -6,7 +6,7 @@ import (
 	"github.com/goal-web/supports/utils"
 )
 
-func NewCommandEvent(command string, mutex *Mutex, callback interface{}, timezone string) contracts.CommandEvent {
+func NewCommandEvent(command string, mutex *Mutex, callback any, timezone string) contracts.CommandEvent {
 	return &CommandEvent{
 		Event:   NewEvent(mutex, callback, timezone),
 		command: command,

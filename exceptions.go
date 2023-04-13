@@ -1,15 +1,9 @@
 package console
 
-import "github.com/goal-web/contracts"
+import (
+	"github.com/goal-web/supports/exceptions"
+)
 
-type CommandArgumentException struct {
-	contracts.Exception
-}
+type CommandArgumentException = exceptions.Exception
 
-type CommandDontExistsException struct {
-	contracts.Exception
-}
-
-type ScheduleEventException struct {
-	contracts.Exception
-}
+type CommandDontExistsException = exceptions.Exception

@@ -10,7 +10,7 @@ type StringArrayInput struct {
 	ArgsArray []string
 }
 
-func StringArray(argsArray []string) StringArrayInput {
+func String(argsArray ...string) StringArrayInput {
 	return StringArrayInput{argsArray}
 }
 

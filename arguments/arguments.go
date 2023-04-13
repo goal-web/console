@@ -13,6 +13,17 @@ type Arguments struct {
 	options contracts.Fields
 }
 
+func NewArguments(args []string, options contracts.Fields) contracts.CommandArguments {
+	arguments := &Arguments{
+		args:       args,
+		BaseFields: supports.BaseFields{},
+		options:    options,
+	}
+
+	arguments.BaseFields.FieldsProvider = arguments
+	return arguments
+}
+
 func (args *Arguments) GetArg(index int) string {
 	if index >= len(args.args) {
 		return ""
@@ -23,19 +34,8 @@ func (args *Arguments) GetArg(index int) string {
 func (args *Arguments) GetArgs() []string {
 	return args.args
 }
-func (args *Arguments) SetOption(key string, value interface{}) {
+func (args *Arguments) SetOption(key string, value any) {
 	args.Fields()[key] = value
-}
-
-func NewArguments(args []string, options contracts.Fields) contracts.CommandArguments {
-	arguments := &Arguments{
-		args:       args,
-		BaseFields: supports.BaseFields{},
-		options:    options,
-	}
-
-	arguments.BaseFields.FieldsProvider = arguments
-	return arguments
 }
 
 func (args *Arguments) StringArrayOption(key string, defaultValue []string) []string {
@@ -49,7 +49,7 @@ func (args *Arguments) Int64ArrayOption(key string, defaultValue []int64) []int6
 	if value := args.GetString(key); value != "" {
 		values := make([]int64, 0)
 		for _, value = range strings.Split(value, ",") {
-			values = append(values, utils.ConvertToInt64(value, 0))
+			values = append(values, utils.ToInt64(value, 0))
 		}
 		return values
 	}
@@ -60,7 +60,7 @@ func (args *Arguments) IntArrayOption(key string, defaultValue []int) []int {
 	if value := args.GetString(key); value != "" {
 		values := make([]int, 0)
 		for _, value = range strings.Split(value, ",") {
-			values = append(values, utils.ConvertToInt(value, 0))
+			values = append(values, utils.ToInt(value, 0))
 		}
 		return values
 	}
@@ -71,7 +71,7 @@ func (args *Arguments) Float64ArrayOption(key string, defaultValue []float64) []
 	if value := args.GetString(key); value != "" {
 		values := make([]float64, 0)
 		for _, value = range strings.Split(value, ",") {
-			values = append(values, utils.ConvertToFloat64(value, 0))
+			values = append(values, utils.ToFloat64(value, 0))
 		}
 		return values
 	}
@@ -82,7 +82,7 @@ func (args *Arguments) FloatArrayOption(key string, defaultValue []float32) []fl
 	if value := args.GetString(key); value != "" {
 		values := make([]float32, 0)
 		for _, value = range strings.Split(value, ",") {
-			values = append(values, utils.ConvertToFloat(value, 0))
+			values = append(values, utils.ToFloat(value, 0))
 		}
 		return values
 	}

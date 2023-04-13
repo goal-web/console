@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func NewEvent(mutex *Mutex, callback interface{}, timezone string) *Event {
+func NewEvent(mutex *Mutex, callback any, timezone string) *Event {
 	return &Event{
 		callback:           callback,
 		mutex:              mutex,
@@ -29,7 +29,7 @@ func NewEvent(mutex *Mutex, callback interface{}, timezone string) *Event {
 type filter func() bool
 
 type Event struct {
-	callback interface{}
+	callback any
 
 	mutex           *Mutex
 	filters         []filter
@@ -46,312 +46,312 @@ type Event struct {
 	expiresAt  time.Duration
 }
 
-func (this *Event) Years(years ...string) contracts.ScheduleEvent {
+func (event *Event) Years(years ...string) contracts.ScheduleEvent {
 	if len(years) > 0 {
-		return this.SpliceIntoPosition(6, strings.Join(years, ","))
+		return event.SpliceIntoPosition(6, strings.Join(years, ","))
 	}
-	return this
+	return event
 }
 
-func (this *Event) Expression() string {
-	return this.expression
+func (event *Event) Expression() string {
+	return event.expression
 }
 
-func (this *Event) EveryThirtySeconds() contracts.ScheduleEvent {
-	return this.SpliceIntoPosition(0, "0,30")
+func (event *Event) EveryThirtySeconds() contracts.ScheduleEvent {
+	return event.SpliceIntoPosition(0, "0,30")
 }
 
-func (this *Event) EveryFifteenSeconds() contracts.ScheduleEvent {
-	return this.SpliceIntoPosition(0, "*/15")
+func (event *Event) EveryFifteenSeconds() contracts.ScheduleEvent {
+	return event.SpliceIntoPosition(0, "*/15")
 }
 
-func (this *Event) EveryTenSeconds() contracts.ScheduleEvent {
-	return this.SpliceIntoPosition(0, "*/10")
+func (event *Event) EveryTenSeconds() contracts.ScheduleEvent {
+	return event.SpliceIntoPosition(0, "*/10")
 }
 
-func (this *Event) EveryFiveSeconds() contracts.ScheduleEvent {
-	return this.SpliceIntoPosition(0, "*/5")
+func (event *Event) EveryFiveSeconds() contracts.ScheduleEvent {
+	return event.SpliceIntoPosition(0, "*/5")
 }
 
-func (this *Event) EveryFourSeconds() contracts.ScheduleEvent {
-	return this.SpliceIntoPosition(0, "*/4")
+func (event *Event) EveryFourSeconds() contracts.ScheduleEvent {
+	return event.SpliceIntoPosition(0, "*/4")
 }
 
-func (this *Event) EveryThreeSeconds() contracts.ScheduleEvent {
-	return this.SpliceIntoPosition(0, "*/3")
+func (event *Event) EveryThreeSeconds() contracts.ScheduleEvent {
+	return event.SpliceIntoPosition(0, "*/3")
 }
 
-func (this *Event) EveryTwoSeconds() contracts.ScheduleEvent {
-	return this.SpliceIntoPosition(0, "*/2")
+func (event *Event) EveryTwoSeconds() contracts.ScheduleEvent {
+	return event.SpliceIntoPosition(0, "*/2")
 }
 
-func (this *Event) EverySecond() contracts.ScheduleEvent {
-	return this.SpliceIntoPosition(0, "*")
+func (event *Event) EverySecond() contracts.ScheduleEvent {
+	return event.SpliceIntoPosition(0, "*")
 }
 
-func (this *Event) WithoutOverlapping(expiresAt int) contracts.ScheduleEvent {
-	this.expiresAt = time.Duration(expiresAt) * time.Second
-	this.withoutOverlapping = true
-	return this.Skip(func() bool {
-		return this.mutex.Exists(this)
+func (event *Event) WithoutOverlapping(expiresAt int) contracts.ScheduleEvent {
+	event.expiresAt = time.Duration(expiresAt) * time.Second
+	event.withoutOverlapping = true
+	return event.Skip(func() bool {
+		return event.mutex.Exists(event)
 	})
 }
 
-func (this *Event) Run(application contracts.Application) {
-	if !this.FiltersPass() {
+func (event *Event) Run(application contracts.Application) {
+	if !event.FiltersPass() {
 		return
 	}
-	defer this.removeMutex()
-	if this.withoutOverlapping && !this.mutex.Create(this) {
+	defer event.removeMutex()
+	if event.withoutOverlapping && !event.mutex.Create(event) {
 		return
 	}
-	application.Call(this.callback)
+	application.Call(event.callback)
 	return
 }
 
-func (this *Event) removeMutex() {
-	if this.withoutOverlapping {
-		this.mutex.Forget(this)
+func (event *Event) removeMutex() {
+	if event.withoutOverlapping {
+		event.mutex.Forget(event)
 	}
 }
-func (this *Event) OnOneServer() contracts.ScheduleEvent {
-	this.onOneServer = true
-	return this
+func (event *Event) OnOneServer() contracts.ScheduleEvent {
+	event.onOneServer = true
+	return event
 }
 
-func (this *Event) Timezone(timezone string) contracts.ScheduleEvent {
-	this.timezone = timezone
-	return this
+func (event *Event) Timezone(timezone string) contracts.ScheduleEvent {
+	event.timezone = timezone
+	return event
 }
 
-func (this *Event) Days(day string, days ...string) contracts.ScheduleEvent {
+func (event *Event) Days(day string, days ...string) contracts.ScheduleEvent {
 	days = append([]string{day}, days...)
-	return this.SpliceIntoPosition(5, strings.Join(days, ","))
+	return event.SpliceIntoPosition(5, strings.Join(days, ","))
 }
 
-func (this *Event) YearlyOn(month time.Month, dayOfMonth int, timeStr string) contracts.ScheduleEvent {
-	this.DailyAt(timeStr)
+func (event *Event) YearlyOn(month time.Month, dayOfMonth int, timeStr string) contracts.ScheduleEvent {
+	event.DailyAt(timeStr)
 
-	return this.SpliceIntoPosition(3, strconv.Itoa(dayOfMonth)).
+	return event.SpliceIntoPosition(3, strconv.Itoa(dayOfMonth)).
 		SpliceIntoPosition(4, strconv.Itoa(int(month)))
 }
 
-func (this *Event) Yearly() contracts.ScheduleEvent {
-	return this.SpliceIntoPosition(1, "0").
+func (event *Event) Yearly() contracts.ScheduleEvent {
+	return event.SpliceIntoPosition(1, "0").
 		SpliceIntoPosition(2, "0").
 		SpliceIntoPosition(3, "1").
 		SpliceIntoPosition(4, "1")
 }
 
-func (this *Event) Quarterly() contracts.ScheduleEvent {
-	return this.SpliceIntoPosition(1, "0").
+func (event *Event) Quarterly() contracts.ScheduleEvent {
+	return event.SpliceIntoPosition(1, "0").
 		SpliceIntoPosition(2, "0").
 		SpliceIntoPosition(3, "1").
 		SpliceIntoPosition(4, "1-12/3")
 }
 
-func (this *Event) LastDayOfMonth(timeStr string) contracts.ScheduleEvent {
-	this.DailyAt(timeStr)
+func (event *Event) LastDayOfMonth(timeStr string) contracts.ScheduleEvent {
+	event.DailyAt(timeStr)
 
-	return this.When(func() bool {
-		return carbon.Now(this.timezone).Day() == carbon.Now(this.timezone).EndOfMonth().Day()
+	return event.When(func() bool {
+		return carbon.Now(event.timezone).Day() == carbon.Now(event.timezone).EndOfMonth().Day()
 	})
 }
 
-func (this *Event) TwiceMonthly(first, second int, timeStr string) contracts.ScheduleEvent {
-	this.DailyAt(timeStr)
-	return this.SpliceIntoPosition(3, fmt.Sprintf("%d,%d", first, second))
+func (event *Event) TwiceMonthly(first, second int, timeStr string) contracts.ScheduleEvent {
+	event.DailyAt(timeStr)
+	return event.SpliceIntoPosition(3, fmt.Sprintf("%d,%d", first, second))
 }
 
-func (this *Event) MonthlyOn(dayOfMonth int, timeStr string) contracts.ScheduleEvent {
-	this.DailyAt(timeStr)
-	return this.SpliceIntoPosition(3, strconv.Itoa(dayOfMonth))
+func (event *Event) MonthlyOn(dayOfMonth int, timeStr string) contracts.ScheduleEvent {
+	event.DailyAt(timeStr)
+	return event.SpliceIntoPosition(3, strconv.Itoa(dayOfMonth))
 }
 
-func (this *Event) Monthly() contracts.ScheduleEvent {
-	return this.SpliceIntoPosition(1, "0").
+func (event *Event) Monthly() contracts.ScheduleEvent {
+	return event.SpliceIntoPosition(1, "0").
 		SpliceIntoPosition(2, "0").
 		SpliceIntoPosition(3, "1")
 }
 
-func (this *Event) WeeklyOn(dayOfWeek time.Weekday, timeStr string) contracts.ScheduleEvent {
-	return this.DailyAt(timeStr).Days(strconv.Itoa(int(dayOfWeek)))
+func (event *Event) WeeklyOn(dayOfWeek time.Weekday, timeStr string) contracts.ScheduleEvent {
+	return event.DailyAt(timeStr).Days(strconv.Itoa(int(dayOfWeek)))
 }
 
-func (this *Event) Weekly() contracts.ScheduleEvent {
-	return this.SpliceIntoPosition(1, "0").
+func (event *Event) Weekly() contracts.ScheduleEvent {
+	return event.SpliceIntoPosition(1, "0").
 		SpliceIntoPosition(2, "0").
 		SpliceIntoPosition(5, "0")
 }
 
-func (this *Event) Sundays() contracts.ScheduleEvent {
-	return this.Days(fmt.Sprintf("%d", time.Sunday))
+func (event *Event) Sundays() contracts.ScheduleEvent {
+	return event.Days(fmt.Sprintf("%d", time.Sunday))
 }
 
-func (this *Event) Saturdays() contracts.ScheduleEvent {
-	return this.Days(fmt.Sprintf("%d", time.Saturday))
+func (event *Event) Saturdays() contracts.ScheduleEvent {
+	return event.Days(fmt.Sprintf("%d", time.Saturday))
 }
 
-func (this *Event) Fridays() contracts.ScheduleEvent {
-	return this.Days(fmt.Sprintf("%d", time.Friday))
+func (event *Event) Fridays() contracts.ScheduleEvent {
+	return event.Days(fmt.Sprintf("%d", time.Friday))
 }
 
-func (this *Event) Thursdays() contracts.ScheduleEvent {
-	return this.Days(fmt.Sprintf("%d", time.Thursday))
+func (event *Event) Thursdays() contracts.ScheduleEvent {
+	return event.Days(fmt.Sprintf("%d", time.Thursday))
 }
 
-func (this *Event) Wednesdays() contracts.ScheduleEvent {
-	return this.Days(fmt.Sprintf("%d", time.Wednesday))
+func (event *Event) Wednesdays() contracts.ScheduleEvent {
+	return event.Days(fmt.Sprintf("%d", time.Wednesday))
 }
 
-func (this *Event) Tuesdays() contracts.ScheduleEvent {
-	return this.Days(fmt.Sprintf("%d", time.Tuesday))
+func (event *Event) Tuesdays() contracts.ScheduleEvent {
+	return event.Days(fmt.Sprintf("%d", time.Tuesday))
 }
 
-func (this *Event) Mondays() contracts.ScheduleEvent {
-	return this.Days(fmt.Sprintf("%d", time.Monday))
+func (event *Event) Mondays() contracts.ScheduleEvent {
+	return event.Days(fmt.Sprintf("%d", time.Monday))
 }
 
-func (this *Event) Weekends() contracts.ScheduleEvent {
-	return this.Days(fmt.Sprintf("%d,%d", time.Saturday, time.Sunday))
+func (event *Event) Weekends() contracts.ScheduleEvent {
+	return event.Days(fmt.Sprintf("%d,%d", time.Saturday, time.Sunday))
 }
 
-func (this *Event) Weekdays() contracts.ScheduleEvent {
-	return this.Days(fmt.Sprintf("%d-%d", time.Monday, time.Friday))
+func (event *Event) Weekdays() contracts.ScheduleEvent {
+	return event.Days(fmt.Sprintf("%d-%d", time.Monday, time.Friday))
 }
 
-func (this *Event) TwiceDailyAt(first, second, offset int) contracts.ScheduleEvent {
-	return this.SpliceIntoPosition(1, strconv.Itoa(offset)).
+func (event *Event) TwiceDailyAt(first, second, offset int) contracts.ScheduleEvent {
+	return event.SpliceIntoPosition(1, strconv.Itoa(offset)).
 		SpliceIntoPosition(2, fmt.Sprintf("%d,%d", first, second))
 }
 
-func (this *Event) TwiceDaily(first, second int) contracts.ScheduleEvent {
-	return this.TwiceDailyAt(first, second, 0)
+func (event *Event) TwiceDaily(first, second int) contracts.ScheduleEvent {
+	return event.TwiceDailyAt(first, second, 0)
 }
 
-func (this *Event) DailyAt(timeStr string) contracts.ScheduleEvent {
+func (event *Event) DailyAt(timeStr string) contracts.ScheduleEvent {
 	segments := strings.Split(timeStr, ":")
-	this.SpliceIntoPosition(2, segments[0])
+	event.SpliceIntoPosition(2, segments[0])
 
 	if len(segments) == 2 {
-		return this.SpliceIntoPosition(1, segments[1])
+		return event.SpliceIntoPosition(1, segments[1])
 	} else {
-		return this.SpliceIntoPosition(1, "0")
+		return event.SpliceIntoPosition(1, "0")
 	}
 }
 
-func (this *Event) Daily() contracts.ScheduleEvent {
-	return this.SpliceIntoPosition(1, "0").
+func (event *Event) Daily() contracts.ScheduleEvent {
+	return event.SpliceIntoPosition(1, "0").
 		SpliceIntoPosition(2, "0")
 }
 
-func (this *Event) EverySixHours() contracts.ScheduleEvent {
-	return this.SpliceIntoPosition(1, "0").
+func (event *Event) EverySixHours() contracts.ScheduleEvent {
+	return event.SpliceIntoPosition(1, "0").
 		SpliceIntoPosition(2, "*/6")
 }
 
-func (this *Event) EveryFourHours() contracts.ScheduleEvent {
-	return this.SpliceIntoPosition(1, "0").
+func (event *Event) EveryFourHours() contracts.ScheduleEvent {
+	return event.SpliceIntoPosition(1, "0").
 		SpliceIntoPosition(2, "*/4")
 }
 
-func (this *Event) EveryThreeHours() contracts.ScheduleEvent {
-	return this.SpliceIntoPosition(1, "0").
+func (event *Event) EveryThreeHours() contracts.ScheduleEvent {
+	return event.SpliceIntoPosition(1, "0").
 		SpliceIntoPosition(2, "*/3")
 }
 
-func (this *Event) EveryTwoHours() contracts.ScheduleEvent {
-	return this.SpliceIntoPosition(1, "0").
+func (event *Event) EveryTwoHours() contracts.ScheduleEvent {
+	return event.SpliceIntoPosition(1, "0").
 		SpliceIntoPosition(2, "*/2")
 }
 
-func (this *Event) HourlyAt(offset ...int) contracts.ScheduleEvent {
+func (event *Event) HourlyAt(offset ...int) contracts.ScheduleEvent {
 	offsetStrings := make([]string, 0)
 	for _, offsetInt := range offset {
 		offsetStrings = append(offsetStrings, strconv.Itoa(offsetInt))
 	}
-	return this.SpliceIntoPosition(1, strings.Join(offsetStrings, ","))
+	return event.SpliceIntoPosition(1, strings.Join(offsetStrings, ","))
 }
 
-func (this *Event) Hourly() contracts.ScheduleEvent {
-	return this.SpliceIntoPosition(1, "0")
+func (event *Event) Hourly() contracts.ScheduleEvent {
+	return event.SpliceIntoPosition(1, "0")
 }
 
-func (this *Event) EveryThirtyMinutes() contracts.ScheduleEvent {
-	return this.SpliceIntoPosition(1, "0,30")
+func (event *Event) EveryThirtyMinutes() contracts.ScheduleEvent {
+	return event.SpliceIntoPosition(1, "0,30")
 }
 
-func (this *Event) EveryFifteenMinutes() contracts.ScheduleEvent {
-	return this.SpliceIntoPosition(1, "*/15")
+func (event *Event) EveryFifteenMinutes() contracts.ScheduleEvent {
+	return event.SpliceIntoPosition(1, "*/15")
 }
 
-func (this *Event) EveryTenMinutes() contracts.ScheduleEvent {
-	return this.SpliceIntoPosition(1, "*/10")
+func (event *Event) EveryTenMinutes() contracts.ScheduleEvent {
+	return event.SpliceIntoPosition(1, "*/10")
 }
 
-func (this *Event) EveryFiveMinutes() contracts.ScheduleEvent {
-	return this.SpliceIntoPosition(1, "*/5")
+func (event *Event) EveryFiveMinutes() contracts.ScheduleEvent {
+	return event.SpliceIntoPosition(1, "*/5")
 }
 
-func (this *Event) EveryFourMinutes() contracts.ScheduleEvent {
-	return this.SpliceIntoPosition(1, "*/4")
+func (event *Event) EveryFourMinutes() contracts.ScheduleEvent {
+	return event.SpliceIntoPosition(1, "*/4")
 }
 
-func (this *Event) EveryThreeMinutes() contracts.ScheduleEvent {
-	return this.SpliceIntoPosition(1, "*/3")
+func (event *Event) EveryThreeMinutes() contracts.ScheduleEvent {
+	return event.SpliceIntoPosition(1, "*/3")
 }
 
-func (this *Event) EveryTwoMinutes() contracts.ScheduleEvent {
-	return this.SpliceIntoPosition(1, "*/2")
+func (event *Event) EveryTwoMinutes() contracts.ScheduleEvent {
+	return event.SpliceIntoPosition(1, "*/2")
 }
 
-func (this *Event) EveryMinute() contracts.ScheduleEvent {
-	return this.SpliceIntoPosition(1, "*")
+func (event *Event) EveryMinute() contracts.ScheduleEvent {
+	return event.SpliceIntoPosition(1, "*")
 }
 
-func (this *Event) FiltersPass() bool {
-	for _, filter := range this.filters {
+func (event *Event) FiltersPass() bool {
+	for _, filter := range event.filters {
 		if !filter() {
 			return false
 		}
 	}
-	for _, reject := range this.rejects {
+	for _, reject := range event.rejects {
 		if reject() {
 			return false
 		}
 	}
 	return true
 }
-func (this *Event) When(filter func() bool) contracts.ScheduleEvent {
-	this.filters = append(this.filters, filter)
-	return this
+func (event *Event) When(filter func() bool) contracts.ScheduleEvent {
+	event.filters = append(event.filters, filter)
+	return event
 }
-func (this *Event) Skip(reject func() bool) contracts.ScheduleEvent {
-	this.rejects = append(this.rejects, reject)
-	return this
-}
-
-func (this *Event) Cron(expression string) contracts.ScheduleEvent {
-	this.expression = expression
-	return this
+func (event *Event) Skip(reject func() bool) contracts.ScheduleEvent {
+	event.rejects = append(event.rejects, reject)
+	return event
 }
 
-func (this *Event) Between(startTime, endTimeStr string) contracts.ScheduleEvent {
-	return this.When(this.inTimeInterval(startTime, endTimeStr))
+func (event *Event) Cron(expression string) contracts.ScheduleEvent {
+	event.expression = expression
+	return event
 }
 
-func (this *Event) UnlessBetween(startTime, endTimeStr string) contracts.ScheduleEvent {
-	return this.Skip(this.inTimeInterval(startTime, endTimeStr))
+func (event *Event) Between(startTime, endTimeStr string) contracts.ScheduleEvent {
+	return event.When(event.inTimeInterval(startTime, endTimeStr))
 }
 
-func (this *Event) inTimeInterval(startTime, endTimeStr string) func() bool {
+func (event *Event) UnlessBetween(startTime, endTimeStr string) contracts.ScheduleEvent {
+	return event.Skip(event.inTimeInterval(startTime, endTimeStr))
+}
+
+func (event *Event) inTimeInterval(startTime, endTimeStr string) func() bool {
 	var (
-		startAt = carbon.Now().ParseByFormat(startTime, "H:i", this.timezone)
-		endAt   = carbon.Now().ParseByFormat(endTimeStr, "H:i", this.timezone)
+		startAt = carbon.Now().ParseByFormat(startTime, "H:i", event.timezone)
+		endAt   = carbon.Now().ParseByFormat(endTimeStr, "H:i", event.timezone)
 	)
 
 	if endAt.Lt(startAt) {
-		if startAt.Gt(carbon.Now(this.timezone).SetYear(0000).SetMonth(1).SetDay(1)) {
+		if startAt.Gt(carbon.Now(event.timezone).SetYear(0000).SetMonth(1).SetDay(1)) {
 			startAt.SubDay()
 		} else {
 			endAt.AddDay()
@@ -359,22 +359,22 @@ func (this *Event) inTimeInterval(startTime, endTimeStr string) func() bool {
 	}
 
 	return func() bool {
-		now := carbon.Now(this.timezone).SetYear(0000).SetMonth(1).SetDay(1)
+		now := carbon.Now(event.timezone).SetYear(0000).SetMonth(1).SetDay(1)
 		return now.Between(startAt, endAt)
 	}
 }
 
-func (this *Event) MutexName() string {
-	return this.mutexName
+func (event *Event) MutexName() string {
+	return event.mutexName
 }
 
-func (this *Event) SetMutexName(mutexName string) contracts.ScheduleEvent {
-	this.mutexName = mutexName
-	return this
+func (event *Event) SetMutexName(mutexName string) contracts.ScheduleEvent {
+	event.mutexName = mutexName
+	return event
 }
 
-func (this *Event) SpliceIntoPosition(position int, value string) contracts.ScheduleEvent {
-	segments := strings.Split(this.expression, " ")
+func (event *Event) SpliceIntoPosition(position int, value string) contracts.ScheduleEvent {
+	segments := strings.Split(event.expression, " ")
 	segments[position] = value
-	return this.Cron(strings.Join(segments, " "))
+	return event.Cron(strings.Join(segments, " "))
 }

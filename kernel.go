@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/goal-web/console/scheduling"
 	"github.com/goal-web/contracts"
-	"github.com/goal-web/supports/exceptions"
 	"github.com/modood/table"
 )
 
@@ -20,17 +19,6 @@ type Kernel struct {
 	exceptionHandler contracts.ExceptionHandler
 }
 
-func (kernel *Kernel) RegisterCommand(name string, command contracts.CommandProvider) {
-	kernel.commands[name] = command
-}
-
-func (kernel *Kernel) GetSchedule() contracts.Schedule {
-	return kernel.schedule
-}
-
-func (kernel *Kernel) Schedule(schedule contracts.Schedule) {
-}
-
 func NewKernel(app contracts.Application, commandProviders []contracts.CommandProvider) *Kernel {
 	var commands = make(map[string]contracts.CommandProvider)
 	for _, provider := range commandProviders {
@@ -42,6 +30,17 @@ func NewKernel(app contracts.Application, commandProviders []contracts.CommandPr
 		schedule:         scheduling.NewSchedule(app),
 		exceptionHandler: app.Get("exceptions.handler").(contracts.ExceptionHandler),
 	}
+}
+
+func (kernel *Kernel) RegisterCommand(name string, command contracts.CommandProvider) {
+	kernel.commands[name] = command
+}
+
+func (kernel *Kernel) GetSchedule() contracts.Schedule {
+	return kernel.schedule
+}
+
+func (kernel *Kernel) Schedule(schedule contracts.Schedule) {
 }
 
 type CommandItem struct {
@@ -64,7 +63,7 @@ func (kernel *Kernel) Help() {
 	table.Output(cmdTable)
 }
 
-func (kernel *Kernel) Call(cmd string, arguments contracts.CommandArguments) interface{} {
+func (kernel *Kernel) Call(cmd string, arguments contracts.CommandArguments) any {
 	if cmd == "" {
 		kernel.Help()
 		return nil
@@ -79,12 +78,7 @@ func (kernel *Kernel) Call(cmd string, arguments contracts.CommandArguments) int
 				return nil
 			}
 			if err := command.InjectArguments(arguments); err != nil {
-				kernel.exceptionHandler.Handle(CommandArgumentException{
-					exceptions.WithError(err, contracts.Fields{
-						"command":   cmd,
-						"arguments": arguments,
-					}),
-				})
+				kernel.exceptionHandler.Handle(&CommandArgumentException{Err: errors.New("the parameter is wrong")})
 				fmt.Println(err.Error())
 				fmt.Println(command.GetHelp())
 				return nil
@@ -95,7 +89,7 @@ func (kernel *Kernel) Call(cmd string, arguments contracts.CommandArguments) int
 	return CommandDontExists
 }
 
-func (kernel *Kernel) Run(input contracts.ConsoleInput) interface{} {
+func (kernel *Kernel) Run(input contracts.ConsoleInput) any {
 	return kernel.Call(input.GetCommand(), input.GetArguments())
 }
 

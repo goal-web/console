@@ -10,8 +10,8 @@ type StringArrayInput struct {
 	ArgsArray []string
 }
 
-func String(argsArray ...string) StringArrayInput {
-	return StringArrayInput{argsArray}
+func String(argsArray ...string) contracts.ConsoleInput {
+	return &StringArrayInput{argsArray}
 }
 
 func (input *StringArrayInput) GetCommand() string {

@@ -6,7 +6,6 @@ import (
 	"github.com/goal-web/supports/exceptions"
 	"github.com/goal-web/supports/logs"
 	"github.com/goal-web/supports/utils"
-	"github.com/golang-module/carbon/v2"
 	"github.com/gorhill/cronexpr"
 	"time"
 )
@@ -33,9 +32,8 @@ func (provider *serviceProvider) runScheduleEvents(events []contracts.ScheduleEv
 		now := time.Now()
 		for index, event := range events {
 			lastExecTime := provider.execRecords[index]
-			nextTime := carbon.Time2Carbon(cronexpr.MustParse(event.Expression()).Next(lastExecTime))
-			nowCarbon := carbon.Time2Carbon(now)
-			if nextTime.DiffInSeconds(nowCarbon) == 0 {
+			nextTime := cronexpr.MustParse(event.Expression()).Next(lastExecTime)
+			if nextTime == now {
 				provider.execRecords[index] = now
 				go (func(event contracts.ScheduleEvent) {
 					defer func() {
@@ -48,7 +46,7 @@ func (provider *serviceProvider) runScheduleEvents(events []contracts.ScheduleEv
 					}()
 					event.Run(provider.app)
 				})(event)
-			} else if nextTime.Lt(nowCarbon) {
+			} else if nextTime.Before(now) {
 				provider.execRecords[index] = now
 			}
 		}

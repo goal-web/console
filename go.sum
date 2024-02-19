@@ -15,10 +15,10 @@ github.com/goal-web/application v0.2.0 h1:MwVgbqF1rxkANIpVfHckA+vXk4e7B2a5EvQ78G
 github.com/goal-web/application v0.2.0/go.mod h1:vZ1C82GW3ptlFiEYG1PchKu7ndbKEeMizQZqOfu/1vk=
 github.com/goal-web/container v0.2.0 h1:kiDhpOzXbvTvUbXCMqukXzNlHxMSW2VTMMcDisj33XA=
 github.com/goal-web/container v0.2.0/go.mod h1:2ziPdY9aQjdeHYGoxK19V24du/DDUc/QxRb9bszGaFc=
-github.com/goal-web/contracts v0.2.0 h1:CAk+mLD2dC//DiCV9TAUSN1zopWSrPZ8+/vCxs+cu8E=
-github.com/goal-web/contracts v0.2.0/go.mod h1:33koNCIiQ7GzBmYycynenVtv5E+Jq7lWGZ8vKi5uXJQ=
-github.com/goal-web/supports v0.2.0 h1:I1MuDcyOSo9JJprXwvyPeV99kn/Zs/VQEM7dDsv6VyY=
-github.com/goal-web/supports v0.2.0/go.mod h1:OZFq18eCd+9atA7re2gbNMZ2zWGdpuSS8WmCRsqhGm4=
+github.com/goal-web/contracts v0.2.2 h1:w3xQ1SpCegX+2T4qWKeKTRc9KscGzq4eOLUk5klVPMY=
+github.com/goal-web/contracts v0.2.2/go.mod h1:33koNCIiQ7GzBmYycynenVtv5E+Jq7lWGZ8vKi5uXJQ=
+github.com/goal-web/supports v0.2.4 h1:Ik+tE4lrCTSo+DunP0h7mZJgEcEvvgU+H77jRnMBNcU=
+github.com/goal-web/supports v0.2.4/go.mod h1:8+VSD/jOW6bHPJbvZ6i+JJuQgj5fcOmCFqJhrq3+RR4=
 github.com/golang-module/carbon/v2 v2.0.1 h1:lck7WgSNVvUIRbwE+MJG3qyrT+Vrcz1tp6TkZ91gFgE=
 github.com/golang-module/carbon/v2 v2.0.1/go.mod h1:NF5unWf838+pyRY0o+qZdIwBMkFf7w0hmLIguLiEpzU=
 github.com/golang/protobuf v1.2.0/go.mod h1:6lQm79b+lXiMfvg/cZm0SGofjICqVBUtrP5yJMmIC1U=

@@ -3,6 +3,7 @@ package inputs
 import (
 	"github.com/goal-web/contracts"
 	"os"
+	"strings"
 )
 
 type ArgsInput struct {
@@ -10,5 +11,12 @@ type ArgsInput struct {
 }
 
 func NewOSArgsInput() contracts.ConsoleInput {
-	return &ArgsInput{String(os.Args[1:]...)}
+	var args []string
+	for _, arg := range os.Args[1:] {
+		if strings.HasPrefix(arg, "-") && len(args) == 0 {
+			continue
+		}
+		args = append(args, arg)
+	}
+	return &ArgsInput{String(args...)}
 }

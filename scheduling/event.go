@@ -106,7 +106,6 @@ func (event *Event) Run(application contracts.Application) {
 		return
 	}
 	application.Call(event.callback)
-	return
 }
 
 func (event *Event) removeMutex() {

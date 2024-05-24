@@ -3,9 +3,6 @@ module github.com/goal-web/console
 go 1.20
 
 require (
-	github.com/goal-web/application v0.3.0
-	github.com/goal-web/contracts v0.3.0
-	github.com/goal-web/supports v0.3.0
 	github.com/golang-module/carbon/v2 v2.0.1
 	github.com/gorhill/cronexpr v0.0.0-20180427100037-88b0669f7d75
 	github.com/modood/table v0.0.0-20200225102042-88de94bb9876

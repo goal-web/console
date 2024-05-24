@@ -10,7 +10,6 @@ require (
 
 require (
 	github.com/apex/log v1.9.0 // indirect
-	github.com/goal-web/container v0.3.0 // indirect
 	github.com/gopherjs/gopherjs v1.17.2 // indirect
 	github.com/jtolds/gls v4.20.0+incompatible // indirect
 	github.com/pkg/errors v0.9.1 // indirect

@@ -33,7 +33,8 @@ func (provider *serviceProvider) runScheduleEvents(events []contracts.ScheduleEv
 		for index, event := range events {
 			lastExecTime := provider.execRecords[index]
 			nextTime := cronexpr.MustParse(event.Expression()).Next(lastExecTime)
-			if nextTime == now {
+			diff := now.Sub(nextTime).Seconds()
+			if diff >= 0 && int(diff) == 0 {
 				provider.execRecords[index] = now
 				go (func(event contracts.ScheduleEvent) {
 					defer func() {

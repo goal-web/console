@@ -5,24 +5,19 @@ import (
 	"github.com/goal-web/contracts"
 )
 
-type Provider func(application contracts.Application) contracts.Console
-
 type serviceProvider struct {
-	ConsoleProvider Provider
-	app             contracts.Application
+	app contracts.Application
 }
 
-func NewService(provider Provider) contracts.ServiceProvider {
-	return &serviceProvider{ConsoleProvider: provider}
+func NewService() contracts.ServiceProvider {
+	return &serviceProvider{}
 }
 
 func (provider *serviceProvider) Register(application contracts.Application) {
 	provider.app = application
 
 	application.Singleton("console", func() contracts.Console {
-		console := provider.ConsoleProvider(application)
-		console.Schedule(console.GetSchedule())
-		return console
+		return NewKernel(application, nil)
 	})
 	application.Singleton("scheduling", func(console contracts.Console) contracts.Schedule {
 		return console.GetSchedule()

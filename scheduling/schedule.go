@@ -46,21 +46,6 @@ func (schedule *Schedule) Call(callback any, args ...any) contracts.CallbackEven
 	return event
 }
 
-func (schedule *Schedule) Command(command contracts.Command, args ...string) contracts.CommandEvent {
-	args = append([]string{command.GetName()}, args...)
-	input := inputs.String(args...)
-	err := command.InjectArguments(input.GetArguments())
-	if err != nil {
-		logs.WithError(err).WithField("args", args).Debug("Schedule.Command: arguments invalid")
-		panic(err) // 因为这个阶段框架还没正式运行，所以 panic
-	}
-	event := NewCommandEvent(command.GetName(), schedule.mutex, func(console contracts.Console) {
-		command.Handle()
-	}, schedule.timezone)
-	schedule.events = append(schedule.events, event)
-	return event
-}
-
 func (schedule *Schedule) Exec(command string, args ...string) contracts.CommandEvent {
 	var event = NewCommandEvent(command, schedule.mutex, func(console contracts.Console) {
 		if console.Exists(command) {

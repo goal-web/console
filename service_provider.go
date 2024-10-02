@@ -19,9 +19,6 @@ func (provider *serviceProvider) Register(application contracts.Application) {
 	application.Singleton("console", func() contracts.Console {
 		return NewKernel(application, nil)
 	})
-	application.Singleton("scheduling", func(console contracts.Console) contracts.Schedule {
-		return console.GetSchedule()
-	})
 	application.Singleton("console.input", func() contracts.ConsoleInput {
 		return inputs.NewOSArgsInput()
 	})

@@ -24,6 +24,10 @@ func NewService() contracts.ServiceProvider {
 
 func (provider *serviceProvider) Register(application contracts.Application) {
 	provider.app = application
+
+	application.Singleton("scheduling", func(console contracts.Console) contracts.Schedule {
+		return NewSchedule(application)
+	})
 }
 
 func (provider *serviceProvider) runScheduleEvents(events []contracts.ScheduleEvent) {

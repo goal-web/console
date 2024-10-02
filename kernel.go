@@ -3,7 +3,6 @@ package console
 import (
 	"errors"
 	"fmt"
-	"github.com/goal-web/console/scheduling"
 	"github.com/goal-web/contracts"
 	"github.com/modood/table"
 )
@@ -14,33 +13,31 @@ const logoText = "  ▄████  ▒█████   ▄▄▄       ██
 
 type Kernel struct {
 	app              contracts.Application
-	commands         map[string]contracts.CommandProvider
-	schedule         contracts.Schedule
+	commands         map[string]contracts.Command
+	handlers         map[string]contracts.CommandHandlerProvider
 	exceptionHandler contracts.ExceptionHandler
 }
 
 func NewKernel(app contracts.Application, commandProviders []contracts.CommandProvider) *Kernel {
-	var commands = make(map[string]contracts.CommandProvider)
+	var handlers = make(map[string]contracts.CommandHandlerProvider)
+	var commands = make(map[string]contracts.Command)
 	for _, provider := range commandProviders {
-		commands[provider(app).GetName()] = provider
+		cmd, handlerProvider := provider()
+		handlers[cmd.GetName()] = handlerProvider
+		commands[cmd.GetName()] = cmd
 	}
 	return &Kernel{
 		app:              app,
+		handlers:         handlers,
 		commands:         commands,
-		schedule:         scheduling.NewSchedule(app),
 		exceptionHandler: app.Get("exceptions.handler").(contracts.ExceptionHandler),
 	}
 }
 
-func (kernel *Kernel) RegisterCommand(name string, command contracts.CommandProvider) {
-	kernel.commands[name] = command
-}
-
-func (kernel *Kernel) GetSchedule() contracts.Schedule {
-	return kernel.schedule
-}
-
-func (kernel *Kernel) Schedule(schedule contracts.Schedule) {
+func (kernel *Kernel) RegisterCommand(command contracts.CommandProvider) {
+	cmd, handlerProvider := command()
+	kernel.handlers[cmd.GetName()] = handlerProvider
+	kernel.commands[cmd.GetName()] = cmd
 }
 
 type CommandItem struct {
@@ -51,8 +48,7 @@ type CommandItem struct {
 
 func (kernel *Kernel) Help() {
 	cmdTable := make([]CommandItem, 0)
-	for _, command := range kernel.commands {
-		cmd := command(kernel.app)
+	for _, cmd := range kernel.commands {
 		cmdTable = append(cmdTable, CommandItem{
 			Command:     cmd.GetName(),
 			Signature:   cmd.GetSignature(),
@@ -68,25 +64,24 @@ func (kernel *Kernel) Call(cmd string, arguments contracts.CommandArguments) any
 		kernel.Help()
 		return nil
 	}
-	for name, provider := range kernel.commands {
-		if cmd == name {
-			command := provider(kernel.app)
-			if arguments.Exists("h") || arguments.Exists("help") {
-				fmt.Println(logoText)
-				fmt.Printf(" %s 命令：%s\n", command.GetName(), command.GetDescription())
-				fmt.Println(command.GetHelp())
-				return nil
-			}
-			if err := command.InjectArguments(arguments); err != nil {
-				kernel.exceptionHandler.Handle(&CommandArgumentException{Err: errors.New("the parameter is wrong")})
-				fmt.Println(err.Error())
-				fmt.Println(command.GetHelp())
-				return nil
-			}
-			return command.Handle()
-		}
+	command, ok := kernel.commands[cmd]
+	if !ok {
+		return CommandDontExists
 	}
-	return CommandDontExists
+	if arguments.Exists("h") || arguments.Exists("help") {
+		fmt.Println(logoText)
+		fmt.Printf(" %s 命令：%s\n", command.GetName(), command.GetDescription())
+		fmt.Println(command.GetHelp())
+		return nil
+	}
+	handler := kernel.handlers[cmd](kernel.app)
+	if err := handler.InjectArguments(command.GetArgs(), arguments); err != nil {
+		kernel.exceptionHandler.Handle(&CommandArgumentException{Err: errors.New("the parameter is wrong")})
+		fmt.Println(err.Error())
+		fmt.Println(command.GetHelp())
+		return nil
+	}
+	return handler.Handle()
 }
 
 func (kernel *Kernel) Run(input contracts.ConsoleInput) any {

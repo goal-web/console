@@ -35,7 +35,7 @@ func (args *Arguments) GetArgs() []string {
 	return args.args
 }
 func (args *Arguments) SetOption(key string, value any) {
-	args.Fields()[key] = value
+	args.ToFields()[key] = value
 }
 
 func (args *Arguments) StringArrayOption(key string, defaultValue []string) []string {
@@ -89,7 +89,7 @@ func (args *Arguments) FloatArrayOption(key string, defaultValue []float32) []fl
 	return defaultValue
 }
 
-func (args *Arguments) Fields() contracts.Fields {
+func (args *Arguments) ToFields() contracts.Fields {
 	return args.options
 }
 

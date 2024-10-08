@@ -16,10 +16,14 @@ type serviceProvider struct {
 	app                  contracts.Application
 	execRecords          map[int]time.Time
 	exceptionHandler     contracts.ExceptionHandler
+
+	worker bool
 }
 
-func NewService() contracts.ServiceProvider {
-	return &serviceProvider{}
+func NewService(worker ...bool) contracts.ServiceProvider {
+	return &serviceProvider{
+		worker: utils.DefaultValue(worker, false),
+	}
 }
 
 func (provider *serviceProvider) Register(application contracts.Application) {
@@ -59,6 +63,9 @@ func (provider *serviceProvider) runScheduleEvents(events []contracts.ScheduleEv
 }
 
 func (provider *serviceProvider) Start() error {
+	if !provider.worker {
+		return nil
+	}
 	provider.execRecords = make(map[int]time.Time)
 	provider.app.Call(func(schedule contracts.Schedule, exceptionHandler contracts.ExceptionHandler) {
 		provider.exceptionHandler = exceptionHandler

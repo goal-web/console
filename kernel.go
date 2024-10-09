@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/goal-web/contracts"
+	"github.com/goal-web/supports/logs"
 	"github.com/modood/table"
 )
 
@@ -66,6 +67,8 @@ func (kernel *Kernel) Call(cmd string, arguments contracts.CommandArguments) any
 	}
 	command, ok := kernel.commands[cmd]
 	if !ok {
+		logs.Default().WithField("cmd", cmd).Warn(CommandDontExists.Error())
+		kernel.Help()
 		return CommandDontExists
 	}
 	if arguments.Exists("h") || arguments.Exists("help") {

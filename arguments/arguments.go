@@ -20,7 +20,7 @@ func NewArguments(args []string, options contracts.Fields) contracts.CommandArgu
 		options:    options,
 	}
 
-	arguments.BaseFields.FieldsProvider = arguments
+	arguments.BaseFields.Provider = arguments
 	return arguments
 }
 

@@ -2,11 +2,12 @@ package scheduling
 
 import (
 	"fmt"
-	"github.com/goal-web/contracts"
-	"github.com/golang-module/carbon/v2"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/dromara/carbon/v2"
+	"github.com/goal-web/contracts"
 )
 
 func NewEvent(mutex *Mutex, callback any, timezone string) *Event {
@@ -345,8 +346,8 @@ func (event *Event) UnlessBetween(startTime, endTimeStr string) contracts.Schedu
 
 func (event *Event) inTimeInterval(startTime, endTimeStr string) func() bool {
 	var (
-		startAt = carbon.Now().ParseByFormat(startTime, "H:i", event.timezone)
-		endAt   = carbon.Now().ParseByFormat(endTimeStr, "H:i", event.timezone)
+    startAt = carbon.ParseByFormat(startTime, "H:i", event.timezone)
+    endAt   = carbon.ParseByFormat(endTimeStr, "H:i", event.timezone)
 	)
 
 	if endAt.Lt(startAt) {
